@@ -9,14 +9,12 @@ import (
 	"github.com/olivere/elastic/v7"
 )
 
-func (r *elasticRepository) GetArticles(ctx context.Context, limit int, offset int, sort_by string, order_by bool) ([]entity.ArticleResponse, error) {
+func (r *elasticRepository) GetArticles(ctx context.Context, req entity.GetArticlesRequest) ([]entity.ArticleResponse, error) {
 	var (
 		articles = []entity.ArticleResponse{}
-		res      *elastic.SearchResult
-		err      error
 	)
 
-	res, err = r.es.Search().Index(r.cfg.IndexArticle).From(offset).Size(limit).Sort(sort_by, order_by).Do(ctx)
+	res, err := r.es.Search().Index(r.cfg.IndexArticle).From(req.Offset).Size(req.Limit).Sort(req.SortBy, req.OrderByBool).Do(ctx)
 	if err != nil {
 		return articles, err
 	}
@@ -34,14 +32,13 @@ func (r *elasticRepository) GetArticles(ctx context.Context, limit int, offset i
 
 	return articles, err
 }
+
 func (r *elasticRepository) GetArticleDetails(ctx context.Context, query elastic.Query) (entity.ArticleResponse, error) {
 	var (
 		article = entity.ArticleResponse{}
-		res     *elastic.SearchResult
-		err     error
 	)
 
-	res, err = r.es.Search().Index(r.cfg.IndexArticle).Query(query).Do(ctx)
+	res, err := r.es.Search().Index(r.cfg.IndexArticle).Query(query).Do(ctx)
 	if err != nil {
 		return article, err
 	}
@@ -55,10 +52,10 @@ func (r *elasticRepository) GetArticleDetails(ctx context.Context, query elastic
 
 	return article, nil
 }
+
 func (r *elasticRepository) InsertArticle(ctx context.Context, article entity.ArticleResponse) error {
 	var (
 		articleJSON []byte
-		body        string
 		err         error
 	)
 
@@ -68,13 +65,7 @@ func (r *elasticRepository) InsertArticle(ctx context.Context, article entity.Ar
 		return err
 	}
 
-	body = string(articleJSON)
-	_, err = r.es.Index().
-		Index(r.cfg.IndexArticle).
-		Id(article.Id).
-		BodyJson(body).
-		Do(ctx)
-
+	_, err = r.es.Index().Index(r.cfg.IndexArticle).Id(article.ID).BodyJson(string(articleJSON)).Do(ctx)
 	if err != nil {
 		log.Println("[Elastic][InsertArticle] failed to insert article, err: ", err)
 		return err
@@ -82,17 +73,9 @@ func (r *elasticRepository) InsertArticle(ctx context.Context, article entity.Ar
 
 	return err
 }
+
 func (r *elasticRepository) UpdateArticle(ctx context.Context, article entity.ArticleResponse) error {
-	var (
-		err error
-	)
-
-	_, err = r.es.Update().
-		Index(r.cfg.IndexArticle).
-		Id(article.Id).
-		Doc(article).
-		Do(ctx)
-
+	_, err := r.es.Update().Index(r.cfg.IndexArticle).Id(article.ID).Doc(article).Do(ctx)
 	if err != nil {
 		log.Println("[Elastic][UpdateArticle] failed to update article, err: ", err)
 		return err
@@ -100,14 +83,9 @@ func (r *elasticRepository) UpdateArticle(ctx context.Context, article entity.Ar
 
 	return nil
 }
-func (r *elasticRepository) DeleteArticle(ctx context.Context, id string) error {
-	var (
-		err error
-	)
-	_, err = r.es.Delete().
-		Index(r.cfg.IndexArticle).
-		Id(id).
-		Do(ctx)
+
+func (r *elasticRepository) DeleteArticle(ctx context.Context, req entity.DeleteArticleRequest) error {
+	_, err := r.es.Delete().Index(r.cfg.IndexArticle).Id(req.ID).Do(ctx)
 	if err != nil {
 		log.Println("[Elastic][DeleteArticle] failed to delete article, err: ", err)
 		return err

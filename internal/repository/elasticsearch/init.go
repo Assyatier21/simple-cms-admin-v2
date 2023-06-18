@@ -9,17 +9,17 @@ import (
 )
 
 type ElasticHandler interface {
-	GetArticles(ctx context.Context, limit int, offset int, sort_by string, order_by bool) ([]entity.ArticleResponse, error)
+	GetArticles(ctx context.Context, req entity.GetArticlesRequest) ([]entity.ArticleResponse, error)
 	GetArticleDetails(ctx context.Context, query elastic.Query) (entity.ArticleResponse, error)
 	InsertArticle(ctx context.Context, article entity.ArticleResponse) error
 	UpdateArticle(ctx context.Context, article entity.ArticleResponse) error
-	DeleteArticle(ctx context.Context, id string) error
+	DeleteArticle(ctx context.Context, req entity.DeleteArticleRequest) error
 
-	GetCategoryTree(ctx context.Context, limit int, offset int) ([]entity.Category, error)
+	GetCategoryTree(ctx context.Context, req entity.GetCategoriesRequest) ([]entity.Category, error)
 	GetCategoryDetails(ctx context.Context, query elastic.Query) (entity.Category, error)
 	InsertCategory(ctx context.Context, category entity.Category) error
 	UpdateCategory(ctx context.Context, category entity.Category) error
-	DeleteCategory(ctx context.Context, id int) error
+	DeleteCategory(ctx context.Context, req entity.DeleteCategoryRequest) error
 }
 
 type elasticRepository struct {

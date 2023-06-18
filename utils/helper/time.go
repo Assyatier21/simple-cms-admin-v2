@@ -3,12 +3,20 @@ package helper
 import (
 	"log"
 	"time"
+
+	"github.com/assyatier21/simple-cms-admin-v2/models/entity"
 )
 
 var (
 	jakartaLoc, _  = time.LoadLocation("Asia/Jakarta")
 	TimeNowJakarta = time.Now().In(jakartaLoc)
 )
+
+func FormatTimeArticleResponse(article *entity.ArticleResponse) entity.ArticleResponse {
+	article.CreatedAt = FormattedTime(article.CreatedAt)
+	article.UpdatedAt = FormattedTime(article.UpdatedAt)
+	return *article
+}
 
 func FormattedTime(ts string) string {
 	t, err := time.Parse(time.RFC3339, ts)

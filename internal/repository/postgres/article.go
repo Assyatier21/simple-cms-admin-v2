@@ -2,145 +2,99 @@ package postgres
 
 import (
 	"context"
-	"database/sql"
 	"encoding/json"
 	"log"
 
-	query "github.com/assyatier21/simple-cms-admin-v2/internal/repository/postgres/queries"
+	"github.com/assyatier21/simple-cms-admin-v2/internal/repository/postgres/queries"
 	"github.com/assyatier21/simple-cms-admin-v2/models/entity"
-	msg "github.com/assyatier21/simple-cms-admin-v2/models/lib"
+	"github.com/lib/pq"
 )
 
-func (r *repository) GetArticles(ctx context.Context, limit int, offset int) ([]entity.ArticleResponse, error) {
+func (r *repository) GetArticles(ctx context.Context, req entity.GetArticlesRequest) ([]entity.ArticleResponse, error) {
 	var (
-		articles []entity.ArticleResponse
-		rows     *sql.Rows
-		err      error
+		articles = []entity.ArticleResponse{}
 	)
-	rows, err = r.db.Query(query.GET_ARTICLES, limit, offset)
+
+	rows, err := r.db.Query(queries.GET_ARTICLES, req.Limit, req.Offset)
 	if err != nil {
-		log.Println("[Repository][GetArticles] failed to get list of articles, err: ", err)
-		return nil, err
+		log.Println("[Repository][GetArticles] failed to exec query, err: ", err)
+		return articles, nil
+
 	}
+	defer rows.Close()
 
 	for rows.Next() {
-		var (
-			temp         entity.ArticleResponse
-			byteMetadata []byte
-		)
+		var article entity.ArticleResponse
+		var categoryJSON json.RawMessage
 
-		if err := rows.Scan(&temp.Id, &temp.Title, &temp.Slug, &temp.HtmlContent, &temp.ResCategory.Id, &temp.ResCategory.Title, &temp.ResCategory.Slug, &temp.CreatedAt, &temp.UpdatedAt); err != nil {
-			log.Println("[Repository][GetArticles] failed to scan article, err :", err)
-			return nil, err
-		}
-
-		err = r.db.QueryRow(query.GET_METADATA, temp.Id).Scan(&byteMetadata)
+		err := rows.Scan(&article.ID, &article.Title, &article.Slug, &article.HTMLContent, &article.Metadata, &article.CreatedAt, &article.UpdatedAt, &categoryJSON)
 		if err != nil {
-			log.Println("[Repository][GetArticles] failed to scan metadata, err :", err)
-			return nil, err
+			log.Println("[Repository][GetArticles] failed to scan data, err: ", err)
+			return articles, nil
 		}
 
-		json.Unmarshal(byteMetadata, &temp.MetaData)
-		articles = append(articles, temp)
-	}
-
-	if len(articles) == 0 {
-		return []entity.ArticleResponse{}, nil
+		err = json.Unmarshal(categoryJSON, &article.CategoryList)
+		if err != nil {
+			log.Println("[Repository][GetArticles] failed to unmarshal categories, err: ", err)
+		}
+		articles = append(articles, article)
 	}
 
 	return articles, nil
 }
 
-func (r *repository) GetArticleDetails(ctx context.Context, id string) (entity.ArticleResponse, error) {
+func (r *repository) GetArticleDetails(ctx context.Context, req entity.GetArticleDetailsRequest) (entity.ArticleResponse, error) {
 	var (
-		article      entity.ArticleResponse
-		err          error
-		byteMetadata []byte
+		article = entity.ArticleResponse{}
 	)
-
-	err = r.db.QueryRow(query.GET_ARTICLE_DETAILS, id).Scan(&article.Id, &article.Title, &article.Slug, &article.HtmlContent, &article.ResCategory.Id, &article.ResCategory.Title, &article.ResCategory.Slug, &article.CreatedAt, &article.UpdatedAt)
+	rows, err := r.db.Query(queries.GET_ARTICLE_DETAILS, req.ID)
 	if err != nil {
-		log.Println("[Repository][GetArticleDetails] failed to scan article, err: ", err)
-		return entity.ArticleResponse{}, err
+		log.Println("[Repository][GetArticleDetails] failed to exec query, err: ", err)
+		return article, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var categories []entity.Category
+		err := rows.Scan(
+			&article.ID, &article.Title, &article.Slug, &article.HTMLContent,
+			&article.Metadata, &article.CreatedAt, &article.UpdatedAt,
+			pq.Array(&categories),
+		)
+		if err != nil {
+			log.Println("[Repository][GetArticleDetails] failed to scan rows, err: ", err)
+			return article, err
+		}
+		article.CategoryList = categories
 	}
 
-	err = r.db.QueryRow(query.GET_METADATA, article.Id).Scan(&byteMetadata)
-	if err != nil {
-		log.Println("[Repository][GetArticleDetails] failed to scan metadata, err :", err)
-		return entity.ArticleResponse{}, err
-	}
-	json.Unmarshal(byteMetadata, &article.MetaData)
-
-	return article, nil
+	return article, err
 }
-func (r *repository) InsertArticle(ctx context.Context, article entity.Article) (entity.ArticleResponse, error) {
-	var (
-		ArticleReponse entity.ArticleResponse
-		err            error
-	)
 
-	marshaled_metadata, err := json.Marshal(article.MetaData)
+func (r *repository) InsertArticle(ctx context.Context, article entity.Article) error {
+	_, err := r.db.Exec(queries.INSERT_ARTICLE, article.ID, article.Title, article.Slug, article.HTMLContent, article.CategoryIDs, article.Metadata, article.CreatedAt, article.UpdatedAt)
 	if err != nil {
 		log.Println("[Repository][InsertArticle] failed to insert article, err: ", err)
-		return entity.ArticleResponse{}, err
+		return err
 	}
-
-	_, err = r.db.Exec(query.INSERT_ARTICLE, article.Id, article.Title, article.Slug, article.HtmlContent, article.CategoryID, marshaled_metadata, article.CreatedAt, article.UpdatedAt)
-	if err != nil {
-		log.Println("[Repository][InsertArticle] failed to insert article, err: ", err)
-		return entity.ArticleResponse{}, err
-	}
-
-	ArticleReponse, err = r.GetArticleDetails(context.Background(), article.Id)
-	if err != nil {
-		log.Println("[Repository][InsertArticle] failed to get article details response, err: ", err)
-		return entity.ArticleResponse{}, err
-	}
-
-	return ArticleReponse, nil
+	return nil
 }
-func (r *repository) UpdateArticle(ctx context.Context, article entity.Article) (entity.ArticleResponse, error) {
-	var (
-		ArticleReponse entity.ArticleResponse
-		rows           sql.Result
-		err            error
-	)
 
-	marshaled_metadata, err := json.Marshal(article.MetaData)
+func (r *repository) UpdateArticle(ctx context.Context, article entity.Article) error {
+	_, err := r.db.Exec(queries.UPDATE_ARTICLE, article.Title, article.Slug, article.HTMLContent, article.CategoryIDs, article.Metadata, article.UpdatedAt, article.ID)
 	if err != nil {
 		log.Println("[Repository][UpdateArticle] failed to update article, err: ", err)
-		return entity.ArticleResponse{}, err
-	}
-
-	rows, err = r.db.Exec(query.UPDATE_ARTICLE, &article.Title, &article.Slug, &article.HtmlContent, &article.CategoryID, marshaled_metadata, &article.UpdatedAt, &article.Id)
-	if err != nil {
-		log.Println("[Repository][UpdateArticle] failed to update article, err: ", err)
-		return entity.ArticleResponse{}, err
-	}
-
-	ArticleReponse, err = r.GetArticleDetails(context.Background(), article.Id)
-	if err != nil {
-		log.Println("[Repository][UpdateArticle] failed to get article details response, err: ", err)
-		return entity.ArticleResponse{}, err
-	}
-
-	rowsAffected, _ := rows.RowsAffected()
-	if rowsAffected == 0 {
-		return entity.ArticleResponse{}, nil
-	}
-
-	return ArticleReponse, nil
-}
-func (r *repository) DeleteArticle(ctx context.Context, id string) error {
-	rows, err := r.db.Exec(query.DELETE_ARTICLE, id)
-	if err != nil {
-		log.Println("[Repository][DeleteArticle] failed to delete article, err: ", err)
 		return err
 	}
 
-	rowsAffected, _ := rows.RowsAffected()
-	if rowsAffected == 0 {
-		return msg.ERROR_NO_ROWS_AFFECTED
+	return nil
+}
+
+func (r *repository) DeleteArticle(ctx context.Context, req entity.DeleteArticleRequest) error {
+	_, err := r.db.Exec(queries.DELETE_ARTICLE, req.ID)
+	if err != nil {
+		log.Println("[Repository][DeleteArticle] failed to delete article, err: ", err)
+		return err
 	}
 
 	return nil

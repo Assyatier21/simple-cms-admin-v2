@@ -10,14 +10,12 @@ import (
 	"github.com/olivere/elastic/v7"
 )
 
-func (r *elasticRepository) GetCategoryTree(ctx context.Context, limit int, offset int) ([]entity.Category, error) {
+func (r *elasticRepository) GetCategoryTree(ctx context.Context, req entity.GetCategoriesRequest) ([]entity.Category, error) {
 	var (
 		categories = []entity.Category{}
-		res        *elastic.SearchResult
-		err        error
 	)
 
-	res, err = r.es.Search().Index(r.cfg.IndexCategory).From(offset).Size(limit).Do(ctx)
+	res, err := r.es.Search().Index(r.cfg.IndexCategory).From(req.Offset).Size(req.Limit).Do(ctx)
 	if err != nil {
 		return categories, err
 	}
@@ -36,13 +34,13 @@ func (r *elasticRepository) GetCategoryTree(ctx context.Context, limit int, offs
 
 	return categories, err
 }
+
 func (r *elasticRepository) GetCategoryDetails(ctx context.Context, query elastic.Query) (entity.Category, error) {
 	var (
 		category = entity.Category{}
-		res      *elastic.SearchResult
-		err      error
 	)
-	res, err = r.es.Search().Index(r.cfg.IndexCategory).Query(query).Do(ctx)
+
+	res, err := r.es.Search().Index(r.cfg.IndexCategory).Query(query).Do(ctx)
 	if err != nil {
 		return category, err
 	}
@@ -57,28 +55,15 @@ func (r *elasticRepository) GetCategoryDetails(ctx context.Context, query elasti
 
 	return category, err
 }
-func (r *elasticRepository) InsertCategory(ctx context.Context, category entity.Category) error {
-	var (
-		categoryJSON []byte
-		category_id  string
-		body         string
-		err          error
-	)
 
-	category_id = strconv.Itoa(category.Id)
-	categoryJSON, err = json.Marshal(category)
+func (r *elasticRepository) InsertCategory(ctx context.Context, category entity.Category) error {
+	categoryJSON, err := json.Marshal(category)
 	if err != nil {
 		log.Println("[Elastic][InsertCategory] failed to marshal category, err: ", err)
 		return err
 	}
 
-	body = string(categoryJSON)
-	_, err = r.es.Index().
-		Index(r.cfg.IndexCategory).
-		Id(category_id).
-		BodyJson(body).
-		Do(ctx)
-
+	_, err = r.es.Index().Index(r.cfg.IndexCategory).Id(strconv.Itoa(category.ID)).BodyJson(string(categoryJSON)).Do(ctx)
 	if err != nil {
 		log.Println("[Elastic][InsertCategory] failed to insert category, err: ", err)
 		return err
@@ -86,19 +71,9 @@ func (r *elasticRepository) InsertCategory(ctx context.Context, category entity.
 
 	return nil
 }
+
 func (r *elasticRepository) UpdateCategory(ctx context.Context, category entity.Category) error {
-	var (
-		category_id string
-		err         error
-	)
-
-	category_id = strconv.Itoa(category.Id)
-	_, err = r.es.Update().
-		Index(r.cfg.IndexCategory).
-		Id(category_id).
-		Doc(category).
-		Do(ctx)
-
+	_, err := r.es.Update().Index(r.cfg.IndexCategory).Id(strconv.Itoa(category.ID)).Doc(category).Do(ctx)
 	if err != nil {
 		log.Println("[Elastic][UpdateCategory] failed to update category, err: ", err)
 		return err
@@ -106,17 +81,9 @@ func (r *elasticRepository) UpdateCategory(ctx context.Context, category entity.
 
 	return nil
 }
-func (r *elasticRepository) DeleteCategory(ctx context.Context, id int) error {
-	var (
-		category_id string
-		err         error
-	)
 
-	category_id = strconv.Itoa(id)
-	_, err = r.es.Delete().
-		Index(r.cfg.IndexCategory).
-		Id(category_id).
-		Do(ctx)
+func (r *elasticRepository) DeleteCategory(ctx context.Context, req entity.DeleteCategoryRequest) error {
+	_, err := r.es.Delete().Index(r.cfg.IndexCategory).Id(strconv.Itoa(req.ID)).Do(ctx)
 	if err != nil {
 		log.Println("[Elastic][DeleteCategory] failed to delete category, err: ", err)
 		return err
