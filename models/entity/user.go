@@ -1,4 +1,4 @@
-package models
+package entity
 
 import (
 	"time"
@@ -31,7 +31,7 @@ type (
 		ExpiredAt time.Time            `json:"expired_at"`
 		Claims    jwt.RegisteredClaims `json:"claims"`
 	}
-	UserClaimsResp struct {
+	UserClaimsResponse struct {
 		Name      string    `json:"name"`
 		Phone     string    `json:"phone"`
 		Role      string    `json:"role"`

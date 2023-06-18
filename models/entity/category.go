@@ -1,4 +1,4 @@
-package models
+package entity
 
 type Category struct {
 	Id        int    `json:"id" form:"id"`
@@ -8,7 +8,7 @@ type Category struct {
 	UpdatedAt string `json:"updated_at" form:"updated_at"`
 }
 
-type ResCategory struct {
+type CategoryResponse struct {
 	Id    int    `json:"id"`
 	Title string `json:"title"`
 	Slug  string `json:"slug"`

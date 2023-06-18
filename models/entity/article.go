@@ -1,4 +1,4 @@
-package models
+package entity
 
 type Article struct {
 	Id          string   `json:"id" form:"id"`
@@ -6,23 +6,23 @@ type Article struct {
 	Slug        string   `json:"slug" form:"slug"`
 	HtmlContent string   `json:"html_content" form:"html_content"`
 	CategoryID  int      `json:"category_id" form:"category_id"`
-	MetaData    MetaData `json:"metadata" form:"metadata"`
+	MetaData    Metadata `json:"metadata" form:"metadata"`
 	CreatedAt   string   `json:"created_at" form:"created_at"`
 	UpdatedAt   string   `json:"updated_at" form:"updated_at"`
 }
 
-type ResArticle struct {
-	Id          string      `json:"id"`
-	Title       string      `json:"title"`
-	Slug        string      `json:"slug"`
-	HtmlContent string      `json:"html_content"`
-	ResCategory ResCategory `json:"category"`
-	MetaData    MetaData    `json:"metadata"`
-	CreatedAt   string      `json:"created_at"`
-	UpdatedAt   string      `json:"updated_at"`
+type ArticleResponse struct {
+	Id          string           `json:"id"`
+	Title       string           `json:"title"`
+	Slug        string           `json:"slug"`
+	HtmlContent string           `json:"html_content"`
+	ResCategory CategoryResponse `json:"category"`
+	MetaData    Metadata         `json:"metadata"`
+	CreatedAt   string           `json:"created_at"`
+	UpdatedAt   string           `json:"updated_at"`
 }
 
-type MetaData struct {
+type Metadata struct {
 	Title       string   `json:"meta_title"`
 	Description string   `json:"meta_description"`
 	Author      string   `json:"meta_author"`
