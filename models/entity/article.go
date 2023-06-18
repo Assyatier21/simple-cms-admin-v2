@@ -10,6 +10,13 @@ type Article struct {
 	CreatedAt   string   `json:"created_at" form:"created_at"`
 	UpdatedAt   string   `json:"updated_at" form:"updated_at"`
 }
+type Metadata struct {
+	Title       string   `json:"meta_title"`
+	Description string   `json:"meta_description"`
+	Author      string   `json:"meta_author"`
+	Keywords    []string `json:"meta_keywords"`
+	Robots      []string `json:"meta_robots"`
+}
 
 type ArticleResponse struct {
 	Id          string           `json:"id"`
@@ -20,12 +27,4 @@ type ArticleResponse struct {
 	MetaData    Metadata         `json:"metadata"`
 	CreatedAt   string           `json:"created_at"`
 	UpdatedAt   string           `json:"updated_at"`
-}
-
-type Metadata struct {
-	Title       string   `json:"meta_title"`
-	Description string   `json:"meta_description"`
-	Author      string   `json:"meta_author"`
-	Keywords    []string `json:"meta_keywords"`
-	Robots      []string `json:"meta_robots"`
 }

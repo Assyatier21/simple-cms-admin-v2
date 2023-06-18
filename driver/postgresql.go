@@ -2,6 +2,9 @@ package driver
 
 import (
 	"database/sql"
+
+	_ "github.com/lib/pq"
+
 	"log"
 
 	"github.com/assyatier21/simple-cms-admin-v2/config"

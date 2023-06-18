@@ -7,6 +7,7 @@ require (
 	github.com/golang-jwt/jwt/v4 v4.5.0
 	github.com/google/uuid v1.1.2
 	github.com/labstack/echo/v4 v4.10.2
+	github.com/lib/pq v1.10.9
 	github.com/olivere/elastic/v7 v7.0.32
 	github.com/spf13/viper v1.16.0
 	github.com/swaggo/swag v1.16.1

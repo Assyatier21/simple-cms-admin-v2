@@ -9,7 +9,7 @@ const (
 							FROM cms_article a JOIN cms_category c ON a.category_id = c.id 
 							WHERE a.id = $1`
 
-	GET_META_DATA = `SELECT metadata 
+	GET_METADATA = `SELECT metadata 
 						FROM cms_article WHERE id = $1`
 
 	INSERT_ARTICLE = `INSERT INTO cms_article (id, title, slug, html_content, category_id, metadata, created_at, updated_at) 
