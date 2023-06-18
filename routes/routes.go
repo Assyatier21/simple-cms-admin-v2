@@ -3,6 +3,7 @@ package routes
 import (
 	"github.com/assyatier21/simple-cms-admin-v2/internal/delivery/api"
 
+	_ "github.com/assyatier21/simple-cms-admin-v2/middleware"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 
