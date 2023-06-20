@@ -25,7 +25,7 @@ func (r *elasticRepository) GetCategoryTree(ctx context.Context, req entity.GetC
 			var category entity.Category
 			err = json.Unmarshal(hit.Source, &category)
 			if err != nil {
-				log.Println("[Elastic][GetCategoryDetails] failed to unmarshal category, err: ", err)
+				log.Println("[Repository][Elastic][GetCategoryDetails] failed to unmarshal category, err: ", err)
 				return categories, err
 			}
 			categories = append(categories, category)
@@ -48,7 +48,7 @@ func (r *elasticRepository) GetCategoryDetails(ctx context.Context, query elasti
 	if res.Hits.TotalHits.Value > 0 {
 		err = json.Unmarshal(res.Hits.Hits[0].Source, &category)
 		if err != nil {
-			log.Println("[Elastic][GetCategoryDetails] failed to unmarshal category, err: ", err)
+			log.Println("[Repository][Elastic][GetCategoryDetails] failed to unmarshal category, err: ", err)
 			return category, err
 		}
 	}
@@ -56,26 +56,26 @@ func (r *elasticRepository) GetCategoryDetails(ctx context.Context, query elasti
 	return category, err
 }
 
-func (r *elasticRepository) InsertCategory(ctx context.Context, category entity.Category) error {
+func (r *elasticRepository) InsertCategory(ctx context.Context, category entity.InsertCategoryRequest) error {
 	categoryJSON, err := json.Marshal(category)
 	if err != nil {
-		log.Println("[Elastic][InsertCategory] failed to marshal category, err: ", err)
+		log.Println("[Repository][Elastic][InsertCategory] failed to marshal category, err: ", err)
 		return err
 	}
 
 	_, err = r.es.Index().Index(r.cfg.IndexCategory).Id(strconv.Itoa(category.ID)).BodyJson(string(categoryJSON)).Do(ctx)
 	if err != nil {
-		log.Println("[Elastic][InsertCategory] failed to insert category, err: ", err)
+		log.Println("[Repository][Elastic][InsertCategory] failed to insert category, err: ", err)
 		return err
 	}
 
 	return nil
 }
 
-func (r *elasticRepository) UpdateCategory(ctx context.Context, category entity.Category) error {
+func (r *elasticRepository) UpdateCategory(ctx context.Context, category entity.UpdateCategoryRequest) error {
 	_, err := r.es.Update().Index(r.cfg.IndexCategory).Id(strconv.Itoa(category.ID)).Doc(category).Do(ctx)
 	if err != nil {
-		log.Println("[Elastic][UpdateCategory] failed to update category, err: ", err)
+		log.Println("[Repository][Elastic][UpdateCategory] failed to update category, err: ", err)
 		return err
 	}
 
@@ -85,7 +85,7 @@ func (r *elasticRepository) UpdateCategory(ctx context.Context, category entity.
 func (r *elasticRepository) DeleteCategory(ctx context.Context, req entity.DeleteCategoryRequest) error {
 	_, err := r.es.Delete().Index(r.cfg.IndexCategory).Id(strconv.Itoa(req.ID)).Do(ctx)
 	if err != nil {
-		log.Println("[Elastic][DeleteCategory] failed to delete category, err: ", err)
+		log.Println("[Repository][Elastic][DeleteCategory] failed to delete category, err: ", err)
 		return err
 	}
 

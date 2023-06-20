@@ -26,3 +26,19 @@ type GetCategoryDetailsRequest struct {
 type DeleteCategoryRequest struct {
 	ID int `json:"id" form:"id" validate:"required"`
 }
+
+type InsertCategoryRequest struct {
+	ID        int    `json:"id" form:"id"`
+	Title     string `json:"title" form:"title" validate:"required"`
+	Slug      string `json:"slug" form:"slug" validate:"required"`
+	CreatedAt string `json:"created_at" form:"created_at"`
+	UpdatedAt string `json:"updated_at" form:"updated_at"`
+}
+
+type UpdateCategoryRequest struct {
+	ID        int    `json:"id" form:"id"`
+	Title     string `json:"title" form:"title"`
+	Slug      string `json:"slug" form:"slug"`
+	CreatedAt string `json:"created_at" form:"created_at"`
+	UpdatedAt string `json:"updated_at" form:"updated_at"`
+}

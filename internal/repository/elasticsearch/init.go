@@ -17,8 +17,8 @@ type ElasticHandler interface {
 
 	GetCategoryTree(ctx context.Context, req entity.GetCategoriesRequest) ([]entity.Category, error)
 	GetCategoryDetails(ctx context.Context, query elastic.Query) (entity.Category, error)
-	InsertCategory(ctx context.Context, category entity.Category) error
-	UpdateCategory(ctx context.Context, category entity.Category) error
+	InsertCategory(ctx context.Context, category entity.InsertCategoryRequest) error
+	UpdateCategory(ctx context.Context, category entity.UpdateCategoryRequest) error
 	DeleteCategory(ctx context.Context, req entity.DeleteCategoryRequest) error
 }
 

@@ -73,17 +73,17 @@ func (r *repository) GetCategoriesByIDs(ctx context.Context, categoryIDs []int) 
 	return categories, nil
 }
 
-func (r *repository) InsertCategory(ctx context.Context, category entity.Category) error {
+func (r *repository) InsertCategory(ctx context.Context, category entity.InsertCategoryRequest) (entity.InsertCategoryRequest, error) {
 	err := r.db.QueryRow(queries.INSERT_CATEGORY, category.Title, category.Slug, category.CreatedAt, category.UpdatedAt).Scan(&category.ID)
 	if err != nil {
 		log.Println("[Repository][Postgres][InsertCategory] failed to insert category, err: ", err)
-		return err
+		return entity.InsertCategoryRequest{}, err
 	}
 
-	return nil
+	return category, nil
 }
 
-func (r *repository) UpdateCategory(ctx context.Context, category entity.Category) error {
+func (r *repository) UpdateCategory(ctx context.Context, category entity.UpdateCategoryRequest) error {
 	result, err := r.db.Exec(queries.UPDATE_CATEGORY, &category.Title, &category.Slug, &category.UpdatedAt, &category.ID)
 	if err != nil {
 		log.Println("[Repository][Postgres][UpdateCategory] failed to update category, err: ", err)

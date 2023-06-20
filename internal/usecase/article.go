@@ -33,10 +33,9 @@ func (u *usecase) GetArticles(ctx context.Context, req entity.GetArticlesRequest
 func (u *usecase) GetArticleDetails(ctx context.Context, req entity.GetArticleDetailsRequest) models.StandardResponseReq {
 	var (
 		article = entity.ArticleResponse{}
-		query   elastic.Query
 	)
 
-	query = elastic.NewMatchQuery(constant.ID, req.ID)
+	query := elastic.NewMatchQuery(constant.ID, req.ID)
 	article, err := u.es.GetArticleDetails(ctx, query)
 	if err != nil {
 		log.Println("[Usecase][Article][Article][GetArticleDetails] failed to get article details, err: ", err)
@@ -48,27 +47,21 @@ func (u *usecase) GetArticleDetails(ctx context.Context, req entity.GetArticleDe
 }
 
 func (u *usecase) InsertArticle(ctx context.Context, req entity.InsertArticleRequest) models.StandardResponseReq {
-	reqArticle := entity.InsertArticleRequest{
-		ID:          helper.GenerateUUIDString(),
-		Title:       req.Title,
-		Slug:        req.Slug,
-		HTMLContent: req.HTMLContent,
-		CategoryIDs: req.CategoryIDs,
-		CreatedAt:   constant.TimeNow,
-		UpdatedAt:   constant.TimeNow,
-		Metadata:    req.Metadata,
-	}
+	// Insert UUID Article
+	req.ID = helper.GenerateUUIDString()
+	req.CreatedAt = constant.TimeNow
+	req.UpdatedAt = constant.TimeNow
 
-	articleResponse, err := u.repository.InsertArticle(ctx, reqArticle)
+	articleResponse, err := u.repository.InsertArticle(ctx, req)
 	if err != nil {
-		log.Println("[Usecase][Article][InsertArticle] failed to insert article, err: ", err)
-		return models.StandardResponseReq{Code: http.StatusInternalServerError, Message: constant.FAILED_INSERT_ARTICLE, Error: err}
+		log.Println("[Usecase][Article][InsertArticle] failed to insert article to postgres, err: ", err)
+		return models.StandardResponseReq{Code: http.StatusInternalServerError, Message: constant.FAILED_INSERT_ARTICLE_POSTGRES, Error: err}
 	}
 
 	err = u.es.InsertArticle(ctx, articleResponse)
 	if err != nil {
 		log.Println("[Usecase][Article][InsertArticle] failed to insert article to elastic, err: ", err)
-		return models.StandardResponseReq{Code: http.StatusInternalServerError, Message: constant.FAILED_INSERT_ARTICLE, Error: err}
+		return models.StandardResponseReq{Code: http.StatusInternalServerError, Message: constant.FAILED_INSERT_ARTICLE_ELASTIC, Error: err}
 	}
 
 	helper.FormatTimeArticleResponse(articleResponse)
@@ -81,14 +74,21 @@ func (u *usecase) UpdateArticle(ctx context.Context, req entity.UpdateArticleReq
 		err     error
 	)
 
+	// Change updated_at time
+	req.UpdatedAt = constant.TimeNow
+
 	article, err = u.repository.UpdateArticle(ctx, req)
 	if err != nil {
-		log.Println("[Usecase][Article][UpdateArticle] failed to update article, err: ", err)
-		return models.StandardResponseReq{Code: http.StatusInternalServerError, Message: constant.FAILED_UPDATE_ARTICLE, Error: err}
+		log.Println("[Usecase][Article][UpdateArticle] failed to update article to postgres, err: ", err)
+		return models.StandardResponseReq{Code: http.StatusInternalServerError, Message: constant.FAILED_UPDATE_ARTICLE_POSTGRES, Error: err}
 	}
 
 	// Update Article To Elasticsearch
-	u.es.UpdateArticle(ctx, article)
+	err = u.es.UpdateArticle(ctx, article)
+	if err != nil {
+		log.Println("[Usecase][Article][UpdateArticle] failed to update article to elastic, err: ", err)
+		return models.StandardResponseReq{Code: http.StatusInternalServerError, Message: constant.FAILED_UPDATE_ARTICLE_ELASTIC, Error: err}
+	}
 
 	article.CreatedAt = helper.FormattedTime(article.CreatedAt)
 	article.UpdatedAt = helper.FormattedTime(constant.TimeNow)
@@ -108,7 +108,7 @@ func (u *usecase) DeleteArticle(ctx context.Context, req entity.DeleteArticleReq
 		defer wg.Done()
 		err := u.repository.DeleteArticle(ctx, req)
 		if err != nil {
-			log.Println("[Usecase][Article][DeleteArticle] failed to delete article, err: ", err)
+			log.Println("[Usecase][Article][DeleteArticle] failed to delete article from postgres, err: ", err)
 			responseChan <- models.StandardResponseReq{Code: http.StatusInternalServerError, Message: constant.FAILED_DELETE_ARTICLE_POSTGRES, Error: err}
 		}
 	}()

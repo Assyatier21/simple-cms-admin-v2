@@ -16,8 +16,8 @@ type RepositoryHandler interface {
 
 	GetCategoryTree(ctx context.Context, req entity.GetCategoriesRequest) ([]entity.Category, error)
 	GetCategoryDetails(ctx context.Context, req entity.GetCategoryDetailsRequest) (entity.Category, error)
-	InsertCategory(ctx context.Context, category entity.Category) error
-	UpdateCategory(ctx context.Context, category entity.Category) error
+	InsertCategory(ctx context.Context, category entity.InsertCategoryRequest) (entity.InsertCategoryRequest, error)
+	UpdateCategory(ctx context.Context, category entity.UpdateCategoryRequest) error
 	DeleteCategory(ctx context.Context, req entity.DeleteCategoryRequest) error
 }
 
