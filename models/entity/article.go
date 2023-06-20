@@ -21,14 +21,14 @@ type Metadata struct {
 }
 
 type ArticleResponse struct {
-	ID           string          `json:"id"`
-	Title        string          `json:"title"`
-	Slug         string          `json:"slug"`
-	HTMLContent  string          `json:"html_content"`
-	Metadata     json.RawMessage `json:"metadata"`
-	CreatedAt    string          `json:"created_at"`
-	UpdatedAt    string          `json:"updated_at"`
-	CategoryList []Category      `json:"categories"`
+	ID           string             `json:"id"`
+	Title        string             `json:"title"`
+	Slug         string             `json:"slug"`
+	HTMLContent  string             `json:"html_content"`
+	Metadata     json.RawMessage    `json:"metadata"`
+	CreatedAt    string             `json:"created_at"`
+	UpdatedAt    string             `json:"updated_at"`
+	CategoryList []CategoryResponse `json:"categories"`
 }
 
 type GetArticlesRequest struct {
@@ -50,15 +50,19 @@ type InsertArticleRequest struct {
 	HTMLContent string `json:"htmlcontent" form:"html_content" validate:"required"`
 	CategoryIDs []int  `json:"category_id" form:"category_id" validate:"required"`
 	Metadata    string `json:"metadata" form:"metadata" validate:"required"`
+	CreatedAt   string `json:"created_at" form:"created_at"`
+	UpdatedAt   string `json:"updated_at" form:"updated_at"`
 }
 
 type UpdateArticleRequest struct {
-	ID          string `json:"id" form:"id" validate:"required"`
+	ID          string `json:"id" form:"id"`
 	Title       string `json:"title" form:"title"`
 	Slug        string `json:"slug" form:"slug"`
 	HTMLContent string `json:"htmlcontent" form:"html_content"`
-	CategoryID  int    `json:"categoryid" form:"category_id"`
+	CategoryIDs []int  `json:"category_id" form:"category_id"`
 	Metadata    string `json:"metadata" form:"metadata"`
+	CreatedAt   string `json:"created_at" form:"created_at"`
+	UpdatedAt   string `json:"updated_at" form:"updated_at"`
 }
 
 type DeleteArticleRequest struct {

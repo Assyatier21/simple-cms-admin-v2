@@ -12,10 +12,10 @@ var (
 	TimeNowJakarta = time.Now().In(jakartaLoc)
 )
 
-func FormatTimeArticleResponse(article *entity.ArticleResponse) entity.ArticleResponse {
+func FormatTimeArticleResponse(article entity.ArticleResponse) entity.ArticleResponse {
 	article.CreatedAt = FormattedTime(article.CreatedAt)
 	article.UpdatedAt = FormattedTime(article.UpdatedAt)
-	return *article
+	return article
 }
 
 func FormattedTime(ts string) string {
@@ -25,6 +25,5 @@ func FormattedTime(ts string) string {
 		return ""
 	}
 
-	formattedTime := t.Format("2006-01-02 15:04:05")
-	return formattedTime
+	return t.Format("2006-01-02 15:04:05")
 }

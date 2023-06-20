@@ -1,168 +1,137 @@
 package usecase
 
-// func (u *usecase) GetArticles(ctx context.Context, req entity.GetArticlesRequest) models.StandardResponseReq {
-// 	var (
-// 		articles = []entity.ArticleResponse{}
-// 	)
+import (
+	"context"
+	"log"
+	"net/http"
+	"sync"
 
-// 	req.SortBy = helper.ValidateSortBy(req.SortBy)
-// 	req.OrderByBool = helper.ValidateOrderBy(req.OrderBy)
+	"github.com/assyatier21/simple-cms-admin-v2/models"
+	"github.com/assyatier21/simple-cms-admin-v2/models/entity"
+	"github.com/assyatier21/simple-cms-admin-v2/utils/constant"
+	"github.com/assyatier21/simple-cms-admin-v2/utils/helper"
+	"github.com/olivere/elastic/v7"
+)
 
-// 	articles, err := u.es.GetArticles(ctx, req)
-// 	if err != nil {
-// 		log.Println("[Usecase][GetCategoryTree] failed to get list of articles, err: ", err)
-// 		return models.StandardResponseReq{Code: http.StatusInternalServerError, Message: constant.FAILED_GET_ARTICLES, Error: err}
-// 	}
+func (u *usecase) GetArticles(ctx context.Context, req entity.GetArticlesRequest) models.StandardResponseReq {
+	var (
+		articles = []entity.ArticleResponse{}
+	)
 
-// 	return models.StandardResponseReq{Code: http.StatusOK, Message: constant.SUCCESS_GET_ARTICLES, Data: articles, Error: nil}
-// }
+	req.SortBy = helper.ValidateSortBy(req.SortBy)
+	req.OrderByBool = helper.ValidateOrderBy(req.OrderBy)
 
-// func (u *usecase) GetArticleDetails(ctx context.Context, req entity.GetArticleDetailsRequest) models.StandardResponseReq {
-// 	var (
-// 		article = entity.ArticleResponse{}
-// 		query   elastic.Query
-// 	)
+	articles, err := u.es.GetArticles(ctx, req)
+	if err != nil {
+		log.Println("[Usecase][Article][Article][GetArticles] failed to get list of articles, err: ", err)
+		return models.StandardResponseReq{Code: http.StatusInternalServerError, Message: constant.FAILED_GET_ARTICLES, Error: err}
+	}
 
-// 	query = elastic.NewMatchQuery(constant.ID, req.ID)
-// 	article, err := u.es.GetArticleDetails(ctx, query)
-// 	if err != nil {
-// 		log.Println("[Usecase][GetArticleDetails] failed to get article details, err: ", err)
-// 		return models.StandardResponseReq{Code: http.StatusInternalServerError, Message: constant.FAILED_GET_ARTICLE_DETAILS, Error: err}
-// 	}
+	return models.StandardResponseReq{Code: http.StatusOK, Message: constant.SUCCESS_GET_ARTICLES, Data: articles, Error: nil}
+}
 
-// 	helper.FormatTimeArticleResponse(&article)
-// 	return models.StandardResponseReq{Code: http.StatusOK, Message: constant.SUCCESS_GET_ARTICLES, Data: article, Error: nil}
-// }
+func (u *usecase) GetArticleDetails(ctx context.Context, req entity.GetArticleDetailsRequest) models.StandardResponseReq {
+	var (
+		article = entity.ArticleResponse{}
+		query   elastic.Query
+	)
 
-// func (u *usecase) InsertArticle(ctx context.Context, req entity.InsertArticleRequest) models.StandardResponseReq {
-// 	reqArticle := entity.Article{
-// 		ID:          helper.GenerateUUIDString(),
-// 		Title:       req.Title,
-// 		Slug:        req.Slug,
-// 		HTMLContent: req.HTMLContent,
-// 		CategoryID:  req.CategoryID,
-// 		CreatedAt:   constant.TimeNow,
-// 		UpdatedAt:   constant.TimeNow,
-// 	}
+	query = elastic.NewMatchQuery(constant.ID, req.ID)
+	article, err := u.es.GetArticleDetails(ctx, query)
+	if err != nil {
+		log.Println("[Usecase][Article][Article][GetArticleDetails] failed to get article details, err: ", err)
+		return models.StandardResponseReq{Code: http.StatusInternalServerError, Message: constant.FAILED_GET_ARTICLE_DETAILS, Error: err}
+	}
 
-// 	err := json.Unmarshal([]byte(req.Metadata), &reqArticle.MetaData)
-// 	if err != nil {
-// 		log.Println("[Usecase][InsertArticle] failed to unmarshal article metadata, err: ", err)
-// 		return models.StandardResponseReq{Code: http.StatusInternalServerError, Message: constant.FAILED_INSERT_ARTICLE, Error: err}
-// 	}
+	article = helper.FormatTimeArticleResponse(article)
+	return models.StandardResponseReq{Code: http.StatusOK, Message: constant.SUCCESS_GET_ARTICLES, Data: article, Error: nil}
+}
 
-// 	article, err := u.repository.InsertArticle(ctx, reqArticle)
-// 	if err != nil {
-// 		log.Println("[Usecase][InsertArticle] failed to insert article, err: ", err)
-// 		return models.StandardResponseReq{Code: http.StatusInternalServerError, Message: constant.FAILED_INSERT_ARTICLE, Error: err}
-// 	}
+func (u *usecase) InsertArticle(ctx context.Context, req entity.InsertArticleRequest) models.StandardResponseReq {
+	reqArticle := entity.InsertArticleRequest{
+		ID:          helper.GenerateUUIDString(),
+		Title:       req.Title,
+		Slug:        req.Slug,
+		HTMLContent: req.HTMLContent,
+		CategoryIDs: req.CategoryIDs,
+		CreatedAt:   constant.TimeNow,
+		UpdatedAt:   constant.TimeNow,
+		Metadata:    req.Metadata,
+	}
 
-// 	err = u.es.InsertArticle(ctx, article)
-// 	if err != nil {
-// 		log.Println("[Usecase][InsertArticle] failed to insert article to elastic, err: ", err)
-// 		return models.StandardResponseReq{Code: http.StatusInternalServerError, Message: constant.FAILED_INSERT_ARTICLE, Error: err}
-// 	}
+	articleResponse, err := u.repository.InsertArticle(ctx, reqArticle)
+	if err != nil {
+		log.Println("[Usecase][Article][InsertArticle] failed to insert article, err: ", err)
+		return models.StandardResponseReq{Code: http.StatusInternalServerError, Message: constant.FAILED_INSERT_ARTICLE, Error: err}
+	}
 
-// 	helper.FormatTimeArticleResponse(&article)
-// 	return models.StandardResponseReq{Code: http.StatusOK, Message: constant.SUCCESS_GET_ARTICLES, Data: article, Error: nil}
-// }
+	err = u.es.InsertArticle(ctx, articleResponse)
+	if err != nil {
+		log.Println("[Usecase][Article][InsertArticle] failed to insert article to elastic, err: ", err)
+		return models.StandardResponseReq{Code: http.StatusInternalServerError, Message: constant.FAILED_INSERT_ARTICLE, Error: err}
+	}
 
-// func (u *usecase) UpdateArticle(ctx context.Context, req entity.UpdateArticleRequest) models.StandardResponseReq {
-// 	var (
-// 		article entity.ArticleResponse
-// 		err     error
-// 	)
+	helper.FormatTimeArticleResponse(articleResponse)
+	return models.StandardResponseReq{Code: http.StatusOK, Message: constant.SUCCESS_GET_ARTICLES, Data: articleResponse, Error: nil}
+}
 
-// 	article, err = u.repository.GetArticleDetails(ctx, entity.GetArticleDetailsRequest{ID: req.ID})
-// 	if err != nil {
-// 		log.Println("[Usecase][UpdateArticle] failed to get article details, err: ", err)
+func (u *usecase) UpdateArticle(ctx context.Context, req entity.UpdateArticleRequest) models.StandardResponseReq {
+	var (
+		article = entity.ArticleResponse{}
+		err     error
+	)
 
-// 	}
+	article, err = u.repository.UpdateArticle(ctx, req)
+	if err != nil {
+		log.Println("[Usecase][Article][UpdateArticle] failed to update article, err: ", err)
+		return models.StandardResponseReq{Code: http.StatusInternalServerError, Message: constant.FAILED_UPDATE_ARTICLE, Error: err}
+	}
 
-// 	if req.Title != "" {
-// 		article.Title = req.Title
-// 	}
+	// Update Article To Elasticsearch
+	u.es.UpdateArticle(ctx, article)
 
-// 	if req.Slug != "" {
-// 		article.Slug = req.Slug
-// 	}
+	article.CreatedAt = helper.FormattedTime(article.CreatedAt)
+	article.UpdatedAt = helper.FormattedTime(constant.TimeNow)
 
-// 	if req.HTMLContent != "" {
-// 		article.HTMLContent = req.HTMLContent
-// 	}
+	return models.StandardResponseReq{Code: http.StatusOK, Message: constant.SUCCESS_UPDATE_ARTICLE, Data: article, Error: nil}
+}
 
-// 	if req.CategoryID != 0 {
-// 		article.ResCategory.ID = req.CategoryID
-// 	}
+func (u *usecase) DeleteArticle(ctx context.Context, req entity.DeleteArticleRequest) models.StandardResponseReq {
+	var (
+		responseChan = make(chan models.StandardResponseReq)
+		wg           sync.WaitGroup
+	)
 
-// 	if req.Metadata != "" {
-// 		err = json.Unmarshal([]byte(req.Metadata), &article.MetaData)
-// 		if err != nil {
-// 			log.Println("[Usecase][UpdateArticle] failed to update article, err: ", err)
+	wg.Add(2)
 
-// 		}
-// 	}
+	go func() {
+		defer wg.Done()
+		err := u.repository.DeleteArticle(ctx, req)
+		if err != nil {
+			log.Println("[Usecase][Article][DeleteArticle] failed to delete article, err: ", err)
+			responseChan <- models.StandardResponseReq{Code: http.StatusInternalServerError, Message: constant.FAILED_DELETE_ARTICLE_POSTGRES, Error: err}
+		}
+	}()
 
-// 	article, err = u.repository.UpdateArticle(ctx, entity.Article{
-// 		ID:          req.ID,
-// 		Title:       article.Title,
-// 		Slug:        article.Slug,
-// 		HTMLContent: article.HTMLContent,
-// 		CategoryID:  article.ResCategory.ID,
-// 		MetaData:    article.MetaData,
-// 		CreatedAt:   article.CreatedAt,
-// 		UpdatedAt:   helper.FormattedTime(constant.TimeNow),
-// 	})
+	go func() {
+		defer wg.Done()
+		err := u.es.DeleteArticle(ctx, req)
+		if err != nil {
+			log.Println("[Usecase][Article][DeleteArticle] failed to delete article from elastic, err: ", err)
+			responseChan <- models.StandardResponseReq{Code: http.StatusInternalServerError, Message: constant.FAILED_DELETE_ARTICLE_ELASTIC, Error: err}
+		}
+	}()
 
-// 	if err != nil {
-// 		log.Println("[Usecase][UpdateArticle] failed to update article, err: ", err)
+	go func() {
+		wg.Wait()
+		close(responseChan)
+	}()
 
-// 	}
+	for response := range responseChan {
+		if response.Error != nil {
+			return response
+		}
+	}
 
-// 	u.es.UpdateArticle(ctx, article)
-
-// 	article.CreatedAt = helper.FormattedTime(article.CreatedAt)
-// 	article.UpdatedAt = helper.FormattedTime(constant.TimeNow)
-
-// 	return models.StandardResponseReq{Code: http.StatusOK, Message: constant.SUCCESS_UPDATE_ARTICLE, Data: article, Error: nil}
-// }
-
-// func (u *usecase) DeleteArticle(ctx context.Context, req entity.DeleteArticleRequest) error {
-// 	var (
-// 		articleDeleted bool
-// 		elasticDeleted bool
-// 		err            error
-// 		wg             sync.WaitGroup
-// 	)
-
-// 	wg = sync.WaitGroup{}
-// 	wg.Add(2)
-
-// 	go func() {
-// 		err := u.repository.DeleteArticle(ctx, req)
-// 		if err != nil {
-// 			log.Println("[Usecase][DeleteArticle] failed to delete article, err: ", err)
-// 		} else {
-// 			articleDeleted = true
-// 		}
-// 		wg.Done()
-// 	}()
-
-// 	go func() {
-// 		err := u.es.DeleteArticle(ctx, req)
-// 		if err != nil {
-// 			log.Println("[Usecase][DeleteArticle] failed to delete article from elastic, err: ", err)
-// 		} else {
-// 			elasticDeleted = true
-// 		}
-// 		wg.Done()
-// 	}()
-
-// 	wg.Wait()
-// 	if !articleDeleted && !elasticDeleted {
-// 		err = errors.New("article not found")
-// 		return err
-// 	}
-
-// 	return nil
-// }
+	return models.StandardResponseReq{Code: http.StatusOK, Message: constant.SUCCESS_DELETE_ARTICLE, Error: nil}
+}

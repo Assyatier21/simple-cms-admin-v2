@@ -18,7 +18,7 @@ func (r *repository) GetArticles(ctx context.Context, req entity.GetArticlesRequ
 
 	rows, err := r.db.Query(queries.GET_ARTICLES, req.Limit, req.Offset)
 	if err != nil {
-		log.Println("[Repository][GetArticles] failed to exec query, err: ", err)
+		log.Println("[Repository][Postgres][GetArticles] error failed to exec query, err: ", err)
 		return articles, nil
 
 	}
@@ -30,13 +30,13 @@ func (r *repository) GetArticles(ctx context.Context, req entity.GetArticlesRequ
 
 		err := rows.Scan(&article.ID, &article.Title, &article.Slug, &article.HTMLContent, &article.Metadata, &article.CreatedAt, &article.UpdatedAt, &categoryJSON)
 		if err != nil {
-			log.Println("[Repository][GetArticles] failed to scan data, err: ", err)
+			log.Println("[Repository][Postgres][GetArticles] error failed to scan data, err: ", err)
 			return articles, nil
 		}
 
 		err = json.Unmarshal(categoryJSON, &article.CategoryList)
 		if err != nil {
-			log.Println("[Repository][GetArticles] failed to unmarshal categories, err: ", err)
+			log.Println("[Repository][Postgres][GetArticles] error failed to unmarshal categories, err: ", err)
 		}
 		articles = append(articles, article)
 	}
@@ -50,20 +50,20 @@ func (r *repository) GetArticleDetails(ctx context.Context, req entity.GetArticl
 	)
 	rows, err := r.db.Query(queries.GET_ARTICLE_DETAILS, req.ID)
 	if err != nil {
-		log.Println("[Repository][GetArticleDetails] failed to exec query, err: ", err)
+		log.Println("[Repository][Postgres][GetArticleDetails] error failed to exec query, err: ", err)
 		return article, err
 	}
 	defer rows.Close()
 
 	for rows.Next() {
-		var categories []entity.Category
+		var categories []entity.CategoryResponse
 		err := rows.Scan(
 			&article.ID, &article.Title, &article.Slug, &article.HTMLContent,
 			&article.Metadata, &article.CreatedAt, &article.UpdatedAt,
 			pq.Array(&categories),
 		)
 		if err != nil {
-			log.Println("[Repository][GetArticleDetails] failed to scan rows, err: ", err)
+			log.Println("[Repository][Postgres][GetArticleDetails] error failed to scan rows, err: ", err)
 			return article, err
 		}
 		article.CategoryList = categories
@@ -72,35 +72,38 @@ func (r *repository) GetArticleDetails(ctx context.Context, req entity.GetArticl
 	return article, err
 }
 
-func (r *repository) InsertArticle(ctx context.Context, article entity.Article) error {
+func (r *repository) InsertArticle(ctx context.Context, article entity.InsertArticleRequest) (entity.ArticleResponse, error) {
 	_, err := r.db.Exec(queries.INSERT_ARTICLE, article.ID, article.Title, article.Slug, article.HTMLContent, article.CategoryIDs, article.Metadata, article.CreatedAt, article.UpdatedAt)
 	if err != nil {
-		log.Println("[Repository][InsertArticle] failed to insert article, err: ", err)
-		return err
+		log.Println("[Repository][Postgres][InsertArticle] error failed to insert article, err: ", err)
+		return entity.ArticleResponse{}, err
 	}
+	articleResponse := r.buildArticleResponse("insert", article)
 
-	return nil
+	return articleResponse, nil
 }
 
-func (r *repository) UpdateArticle(ctx context.Context, article entity.Article) error {
-	result, err := r.db.Exec(queries.UPDATE_ARTICLE, article.Title, article.Slug, article.HTMLContent, article.CategoryIDs, article.Metadata, article.UpdatedAt, article.ID)
+func (r *repository) UpdateArticle(ctx context.Context, article entity.UpdateArticleRequest) (entity.ArticleResponse, error) {
+	result, err := r.db.Exec(queries.UPDATE_ARTICLE, article.Title, article.Slug, article.HTMLContent, article.CategoryIDs, article.Metadata, article.CreatedAt, article.UpdatedAt, article.ID)
 	if err != nil {
-		log.Println("[Repository][UpdateArticle] failed to update article, err: ", err)
-		return err
+		log.Println("[Repository][Postgres][UpdateArticle] error failed to update article, err: ", err)
+		return entity.ArticleResponse{}, err
 	}
 
 	rowsAffected, _ := result.RowsAffected()
 	if rowsAffected == 0 {
-		return lib.ErrorNoRowsAffected
+		return entity.ArticleResponse{}, lib.ErrorNoRowsAffected
 	}
 
-	return nil
+	articleResponse := r.buildArticleResponse("update", article)
+
+	return articleResponse, nil
 }
 
 func (r *repository) DeleteArticle(ctx context.Context, req entity.DeleteArticleRequest) error {
 	result, err := r.db.Exec(queries.DELETE_ARTICLE, req.ID)
 	if err != nil {
-		log.Println("[Repository][DeleteArticle] failed to delete article, err: ", err)
+		log.Println("[Repository][Postgres][DeleteArticle] error failed to delete article, err: ", err)
 		return err
 	}
 
