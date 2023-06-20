@@ -13,6 +13,13 @@ const (
 	UPDATE_CATEGORY = `UPDATE categories SET title = $1, slug = $2, updated_at = $3
 							WHERE id = $4`
 
-	DELETE_CATEGORY = `DELETE FROM categories 
-							WHERE id = $1`
+	// Query if Category Used by Article, Cancel Commit
+	DELETE_CATEGORY = `WITH used_categories AS (
+							SELECT DISTINCT unnest(category_id) AS category
+							FROM articles WHERE $1 = ANY(category_id) LIMIT 1
+						)
+						DELETE FROM categories WHERE id = $1
+						AND NOT EXISTS (
+							SELECT 1 FROM used_categories
+						);`
 )

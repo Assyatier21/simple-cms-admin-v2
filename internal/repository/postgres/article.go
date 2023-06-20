@@ -7,6 +7,7 @@ import (
 
 	"github.com/assyatier21/simple-cms-admin-v2/internal/repository/postgres/queries"
 	"github.com/assyatier21/simple-cms-admin-v2/models/entity"
+	"github.com/assyatier21/simple-cms-admin-v2/models/lib"
 	"github.com/lib/pq"
 )
 
@@ -77,24 +78,35 @@ func (r *repository) InsertArticle(ctx context.Context, article entity.Article) 
 		log.Println("[Repository][InsertArticle] failed to insert article, err: ", err)
 		return err
 	}
+
 	return nil
 }
 
 func (r *repository) UpdateArticle(ctx context.Context, article entity.Article) error {
-	_, err := r.db.Exec(queries.UPDATE_ARTICLE, article.Title, article.Slug, article.HTMLContent, article.CategoryIDs, article.Metadata, article.UpdatedAt, article.ID)
+	result, err := r.db.Exec(queries.UPDATE_ARTICLE, article.Title, article.Slug, article.HTMLContent, article.CategoryIDs, article.Metadata, article.UpdatedAt, article.ID)
 	if err != nil {
 		log.Println("[Repository][UpdateArticle] failed to update article, err: ", err)
 		return err
+	}
+
+	rowsAffected, _ := result.RowsAffected()
+	if rowsAffected == 0 {
+		return lib.ErrorNoRowsAffected
 	}
 
 	return nil
 }
 
 func (r *repository) DeleteArticle(ctx context.Context, req entity.DeleteArticleRequest) error {
-	_, err := r.db.Exec(queries.DELETE_ARTICLE, req.ID)
+	result, err := r.db.Exec(queries.DELETE_ARTICLE, req.ID)
 	if err != nil {
 		log.Println("[Repository][DeleteArticle] failed to delete article, err: ", err)
 		return err
+	}
+
+	rowsAffected, _ := result.RowsAffected()
+	if rowsAffected == 0 {
+		return lib.ErrorNoRowsAffected
 	}
 
 	return nil

@@ -6,6 +6,7 @@ import (
 
 	"github.com/assyatier21/simple-cms-admin-v2/internal/repository/postgres/queries"
 	"github.com/assyatier21/simple-cms-admin-v2/models/entity"
+	"github.com/assyatier21/simple-cms-admin-v2/models/lib"
 )
 
 func (r *repository) GetCategoryTree(ctx context.Context, req entity.GetCategoriesRequest) ([]entity.Category, error) {
@@ -59,20 +60,30 @@ func (r *repository) InsertCategory(ctx context.Context, category entity.Categor
 }
 
 func (r *repository) UpdateCategory(ctx context.Context, category entity.Category) error {
-	_, err := r.db.Exec(queries.UPDATE_CATEGORY, &category.Title, &category.Slug, &category.UpdatedAt, &category.ID)
+	result, err := r.db.Exec(queries.UPDATE_CATEGORY, &category.Title, &category.Slug, &category.UpdatedAt, &category.ID)
 	if err != nil {
 		log.Println("[Repository][UpdateCategory] failed to update category, err: ", err)
 		return err
+	}
+
+	rowsAffected, _ := result.RowsAffected()
+	if rowsAffected == 0 {
+		return lib.ErrorNoRowsAffected
 	}
 
 	return nil
 }
 
 func (r *repository) DeleteCategory(ctx context.Context, req entity.DeleteCategoryRequest) error {
-	_, err := r.db.Exec(queries.DELETE_CATEGORY, req.ID)
+	result, err := r.db.Exec(queries.DELETE_CATEGORY, req.ID)
 	if err != nil {
-		log.Println("[Repository][DeleteCategory] failed to delete category, err: ", err)
+		log.Println("[Repository][DeleteCategory] failed to delete category, err:", err)
 		return err
+	}
+
+	rowsAffected, _ := result.RowsAffected()
+	if rowsAffected == 0 {
+		return lib.ErrorNoRowsAffected
 	}
 
 	return nil
