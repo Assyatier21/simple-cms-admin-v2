@@ -3,7 +3,7 @@ package main
 import (
 	"github.com/assyatier21/simple-cms-admin-v2/config"
 	"github.com/assyatier21/simple-cms-admin-v2/driver"
-	"github.com/assyatier21/simple-cms-admin-v2/internal/delivery/api"
+	"github.com/assyatier21/simple-cms-admin-v2/internal/handler/api"
 	"github.com/assyatier21/simple-cms-admin-v2/internal/repository/elasticsearch"
 	"github.com/assyatier21/simple-cms-admin-v2/internal/repository/postgres"
 	"github.com/assyatier21/simple-cms-admin-v2/internal/usecase"
