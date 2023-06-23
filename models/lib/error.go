@@ -26,16 +26,16 @@ var (
 	ERROR_FORMAT_EMPTY_CATEGORYID = "incorrect categoryid format or categoryid failed to be empty"
 	ERROR_FORMAT_EMPTY_METADATA   = "incorrect metadata format or metadata failed to be empty"
 
-	ERR_VALIDATION_ID      = "id must be an integer and can't be empty"
-	ERR_PHONE_REGISTERED   = "phone number already registered"
-	ERR_REGISTRY_NOT_FOUND = "registry not found"
-	ERR_PHONE_OR_PASS      = "phone or password are incorrect"
-	ERR_ROLE_FORMAT        = "role chosen aren't defined"
-	ERR_GENERATE_JWT       = "failed to generate jwt token"
-	ERR_EMPTY_TOKEN        = "token is empty"
-	ERR_EMPTY_PAYLOAD      = "payload can't be empty"
-	ERR_BINDING            = "failed to bind request"
-	ERR_TOKEN_EXPIRED      = "token already expired"
+	ERR_VALIDATION_ID    = "id must be an integer and can't be empty"
+	ERR_PHONE_REGISTERED = "phone number already registered"
+	ERR_DATA_NOT_FOUND   = "record not found"
+	ERR_PHONE_OR_PASS    = "phone or password are incorrect"
+	ERR_ROLE_FORMAT      = "role chosen aren't defined"
+	ERR_GENERATE_JWT     = "failed to generate jwt token"
+	ERR_EMPTY_TOKEN      = "token is empty"
+	ERR_EMPTY_PAYLOAD    = "payload can't be empty"
+	ERR_BINDING          = "failed to bind request"
+	ERR_TOKEN_EXPIRED    = "token already expired"
 
 	ErrorNotFound       = errors.New("data not found")
 	ErrorNoRowsAffected = errors.New("no rows affected")

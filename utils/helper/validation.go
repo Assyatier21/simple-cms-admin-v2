@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/assyatier21/simple-cms-admin-v2/models"
+	"github.com/assyatier21/simple-cms-admin-v2/models/entity"
 
 	"github.com/go-playground/validator"
 	"github.com/labstack/echo/v4"
@@ -70,7 +71,7 @@ func IsValidSlug(s string) bool {
 	return regex.MatchString(s)
 }
 
-func ValidateSortBy(sort_by string) string {
+func BuildSortByQuery(sort_by string) string {
 	if sort_by == "title" {
 		sort_by = "title.keyword"
 	} else if sort_by == "slug" {
@@ -84,7 +85,7 @@ func ValidateSortBy(sort_by string) string {
 	return sort_by
 }
 
-func ValidateOrderBy(order_by string) bool {
+func BuildOrderByQuery(order_by string) bool {
 	var order_by_bool bool
 
 	order_by_bool = false
@@ -95,4 +96,15 @@ func ValidateOrderBy(order_by string) bool {
 	}
 
 	return order_by_bool
+}
+
+func GeArticleRequestValidation(req entity.GetArticlesRequest) entity.GetArticlesRequest {
+	req.SortBy = BuildSortByQuery(req.SortBy)
+	req.OrderByBool = BuildOrderByQuery(req.OrderBy)
+
+	if req.Limit == 0 {
+		req.Limit = 10
+	}
+
+	return req
 }

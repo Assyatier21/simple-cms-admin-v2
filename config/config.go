@@ -7,9 +7,15 @@ import (
 )
 
 type Config struct {
-	PostgresConfig DBConfig      `mapstructure:"POSTGRESQL"`
-	ElasticConfig  ElasticConfig `mapstructure:"ELASTICSEARCH"`
-	JWTSecretKey   string        `mapstructure:"JWT_SECRET_KEY"`
+	ApplicationConfig ApplicationConfig `mapstructure:"APP_CONFIG"`
+	PostgresConfig    DBConfig          `mapstructure:"POSTGRESQL"`
+	ElasticConfig     ElasticConfig     `mapstructure:"ELASTICSEARCH"`
+	JWTSecretKey      string            `mapstructure:"JWT_SECRET_KEY"`
+}
+
+type ApplicationConfig struct {
+	Host string `mapstructure:"APP_HOST"`
+	Port string `mapstructure:"APP_PORT"`
 }
 
 type DBConfig struct {

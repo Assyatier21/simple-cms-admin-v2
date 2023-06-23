@@ -8,6 +8,7 @@ import (
 
 	"github.com/assyatier21/simple-cms-admin-v2/models"
 	"github.com/assyatier21/simple-cms-admin-v2/models/entity"
+	"github.com/assyatier21/simple-cms-admin-v2/models/lib"
 	"github.com/assyatier21/simple-cms-admin-v2/utils/constant"
 	"github.com/assyatier21/simple-cms-admin-v2/utils/helper"
 	"github.com/olivere/elastic/v7"
@@ -18,9 +19,7 @@ func (u *usecase) GetArticles(ctx context.Context, req entity.GetArticlesRequest
 		articles = []entity.ArticleResponse{}
 	)
 
-	req.SortBy = helper.ValidateSortBy(req.SortBy)
-	req.OrderByBool = helper.ValidateOrderBy(req.OrderBy)
-
+	req = helper.GeArticleRequestValidation(req)
 	articles, err := u.es.GetArticles(ctx, req)
 	if err != nil {
 		log.Println("[Usecase][Article][Article][GetArticles] failed to get list of articles, err: ", err)
@@ -42,8 +41,12 @@ func (u *usecase) GetArticleDetails(ctx context.Context, req entity.GetArticleDe
 		return models.StandardResponseReq{Code: http.StatusInternalServerError, Message: constant.FAILED_GET_ARTICLE_DETAILS, Error: err}
 	}
 
+	if article.ID == "" {
+		return models.StandardResponseReq{Code: http.StatusOK, Message: lib.ERR_DATA_NOT_FOUND, Error: nil}
+	}
+
 	article = helper.FormatTimeArticleResponse(article)
-	return models.StandardResponseReq{Code: http.StatusOK, Message: constant.SUCCESS_GET_ARTICLES, Data: article, Error: nil}
+	return models.StandardResponseReq{Code: http.StatusOK, Message: constant.FAILED_GET_ARTICLE_DETAILS, Data: article, Error: nil}
 }
 
 func (u *usecase) InsertArticle(ctx context.Context, req entity.InsertArticleRequest) models.StandardResponseReq {
@@ -65,7 +68,7 @@ func (u *usecase) InsertArticle(ctx context.Context, req entity.InsertArticleReq
 	}
 
 	helper.FormatTimeArticleResponse(articleResponse)
-	return models.StandardResponseReq{Code: http.StatusOK, Message: constant.SUCCESS_GET_ARTICLES, Data: articleResponse, Error: nil}
+	return models.StandardResponseReq{Code: http.StatusOK, Message: constant.SUCCESS_INSERT_ARTICLE, Data: articleResponse, Error: nil}
 }
 
 func (u *usecase) UpdateArticle(ctx context.Context, req entity.UpdateArticleRequest) models.StandardResponseReq {

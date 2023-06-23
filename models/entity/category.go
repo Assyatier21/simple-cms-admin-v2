@@ -1,7 +1,7 @@
 package entity
 
 type Category struct {
-	ID        int    `json:"id" form:"id"`
+	ID        int    `json:"id" form:"id" param:"id"`
 	Title     string `json:"title" form:"title"`
 	Slug      string `json:"slug" form:"slug"`
 	CreatedAt string `json:"created_at" form:"created_at"`
@@ -20,15 +20,15 @@ type GetCategoriesRequest struct {
 }
 
 type GetCategoryDetailsRequest struct {
-	ID int `json:"id" form:"id" validate:"required"`
+	ID int `json:"id" form:"id" param:"id" validate:"required"`
 }
 
 type DeleteCategoryRequest struct {
-	ID int `json:"id" form:"id" validate:"required"`
+	ID int `json:"id" form:"id" param:"id" validate:"required"`
 }
 
 type InsertCategoryRequest struct {
-	ID        int    `json:"id" form:"id"`
+	ID        int    `json:"id" form:"id" param:"id"`
 	Title     string `json:"title" form:"title" validate:"required"`
 	Slug      string `json:"slug" form:"slug" validate:"required"`
 	CreatedAt string `json:"created_at" form:"created_at"`
@@ -36,7 +36,7 @@ type InsertCategoryRequest struct {
 }
 
 type UpdateCategoryRequest struct {
-	ID        int    `json:"id" form:"id"`
+	ID        int    `json:"id" form:"id" param:"id"`
 	Title     string `json:"title" form:"title"`
 	Slug      string `json:"slug" form:"slug"`
 	CreatedAt string `json:"created_at" form:"created_at"`

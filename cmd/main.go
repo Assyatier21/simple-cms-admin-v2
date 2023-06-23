@@ -1,20 +1,25 @@
 package main
 
 import (
+	"fmt"
+
 	"github.com/assyatier21/simple-cms-admin-v2/config"
 	"github.com/assyatier21/simple-cms-admin-v2/driver"
 	"github.com/assyatier21/simple-cms-admin-v2/internal/handler/api"
 	"github.com/assyatier21/simple-cms-admin-v2/internal/repository/elasticsearch"
 	"github.com/assyatier21/simple-cms-admin-v2/internal/repository/postgres"
 	"github.com/assyatier21/simple-cms-admin-v2/internal/usecase"
-	"github.com/assyatier21/simple-cms-admin-v2/routes"
-	"github.com/assyatier21/simple-cms-admin-v2/utils/helper"
+	"github.com/assyatier21/simple-cms-admin-v2/middleware"
+	"github.com/assyatier21/simple-cms-admin-v2/router"
+	"github.com/labstack/echo/v4"
 )
 
 // @title           Swagger Simple CMS Admin
 // @version         2.0
 // @description     This is a documentation of Simple Content Management System V2.
 func main() {
+	server := echo.New()
+
 	// Load Config
 	cfg := config.Load()
 
@@ -25,10 +30,11 @@ func main() {
 	elasticRepository := elasticsearch.NewElasticRepository(esClient, cfg.ElasticConfig)
 
 	usecase := usecase.NewUsecase(postgresRepository, elasticRepository)
-	delivery := api.NewHandler(usecase)
+	handler := api.NewHandler(usecase)
 
-	echo := routes.InitRoutes(delivery)
-	helper.UseCustomValidatorHandler(echo)
+	router.InitRouter(server, handler)
+	middleware.InitMiddlewares(server)
 
-	echo.Start(":8800")
+	host := fmt.Sprintf("%s:%s", cfg.ApplicationConfig.Host, cfg.ApplicationConfig.Port)
+	server.Start(host)
 }

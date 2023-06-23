@@ -8,6 +8,7 @@ import (
 
 	"github.com/assyatier21/simple-cms-admin-v2/models"
 	"github.com/assyatier21/simple-cms-admin-v2/models/entity"
+	"github.com/assyatier21/simple-cms-admin-v2/models/lib"
 	"github.com/assyatier21/simple-cms-admin-v2/utils/constant"
 	"github.com/assyatier21/simple-cms-admin-v2/utils/helper"
 	"github.com/olivere/elastic/v7"
@@ -37,6 +38,10 @@ func (u *usecase) GetCategoryDetails(ctx context.Context, req entity.GetCategory
 	if err != nil {
 		log.Println("[Usecase][Category][GetCategoryDetails] failed to get category details, err: ", err)
 		return models.StandardResponseReq{Code: http.StatusInternalServerError, Message: constant.FAILED_GET_CATEGORY_DETAILS, Error: err}
+	}
+
+	if category.ID == 0 {
+		return models.StandardResponseReq{Code: http.StatusOK, Message: lib.ERR_DATA_NOT_FOUND, Error: nil}
 	}
 
 	return models.StandardResponseReq{Code: http.StatusOK, Message: constant.FAILED_GET_CATEGORY_DETAILS, Data: category, Error: nil}

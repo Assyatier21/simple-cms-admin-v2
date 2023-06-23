@@ -32,15 +32,15 @@ type ArticleResponse struct {
 }
 
 type GetArticlesRequest struct {
-	Limit       int    `json:"limit" form:"limit"`
-	Offset      int    `json:"offset" form:"offset"`
-	SortBy      string `json:"sort_by" form:"sort_by"`
-	OrderBy     string `json:"order_by" form:"order_by"`
+	Limit       int    `param:"limit" json:"limit" form:"limit"`
+	Offset      int    `param:"offset" json:"offset" form:"offset"`
+	SortBy      string `param:"sort_by" json:"sort_by" form:"sort_by"`
+	OrderBy     string `param:"order_by" json:"order_by" form:"order_by"`
 	OrderByBool bool
 }
 
 type GetArticleDetailsRequest struct {
-	ID string `json:"id" form:"id" validate:"required"`
+	ID string `json:"id" form:"id" param:"id" validate:"required"`
 }
 
 type InsertArticleRequest struct {
@@ -66,5 +66,5 @@ type UpdateArticleRequest struct {
 }
 
 type DeleteArticleRequest struct {
-	ID string `json:"id" form:"id" validate:"required"`
+	ID string `json:"id" form:"id" param:"id" validate:"required"`
 }

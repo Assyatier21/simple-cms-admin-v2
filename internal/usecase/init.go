@@ -15,6 +15,12 @@ type UsecaseHandler interface {
 	InsertArticle(ctx context.Context, req entity.InsertArticleRequest) models.StandardResponseReq
 	UpdateArticle(ctx context.Context, req entity.UpdateArticleRequest) models.StandardResponseReq
 	DeleteArticle(ctx context.Context, req entity.DeleteArticleRequest) models.StandardResponseReq
+
+	GetCategoryTree(ctx context.Context, req entity.GetCategoriesRequest) models.StandardResponseReq
+	GetCategoryDetails(ctx context.Context, req entity.GetCategoryDetailsRequest) models.StandardResponseReq
+	InsertCategory(ctx context.Context, req entity.InsertCategoryRequest) models.StandardResponseReq
+	UpdateCategory(ctx context.Context, req entity.UpdateCategoryRequest) models.StandardResponseReq
+	DeleteCategory(ctx context.Context, req entity.DeleteCategoryRequest) models.StandardResponseReq
 }
 
 type usecase struct {
