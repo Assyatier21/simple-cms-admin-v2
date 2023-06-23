@@ -5,10 +5,12 @@ go 1.19
 require (
 	github.com/go-playground/validator v9.31.0+incompatible
 	github.com/golang-jwt/jwt/v4 v4.5.0
+	github.com/golang/mock v1.4.4
 	github.com/google/uuid v1.1.2
 	github.com/labstack/echo/v4 v4.10.2
 	github.com/lib/pq v1.10.9
 	github.com/olivere/elastic/v7 v7.0.32
+	github.com/spf13/cast v1.5.1
 	github.com/spf13/viper v1.16.0
 	github.com/swaggo/swag v1.16.1
 	golang.org/x/crypto v0.10.0
@@ -38,7 +40,6 @@ require (
 	github.com/pelletier/go-toml/v2 v2.0.8 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/spf13/afero v1.9.5 // indirect
-	github.com/spf13/cast v1.5.1 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/subosito/gotenv v1.4.2 // indirect
