@@ -10,6 +10,7 @@ type Config struct {
 	ApplicationConfig ApplicationConfig `mapstructure:"APP_CONFIG"`
 	PostgresConfig    DBConfig          `mapstructure:"POSTGRESQL"`
 	ElasticConfig     ElasticConfig     `mapstructure:"ELASTICSEARCH"`
+	RedisConfig       RedisConfig       `mapstructure:"REDIS_CONFIG"`
 	JWTSecretKey      string            `mapstructure:"JWT_SECRET_KEY"`
 }
 
@@ -31,6 +32,14 @@ type ElasticConfig struct {
 	Address       string `mapstructure:"ESADDRESS"`
 	IndexArticle  string `mapstructure:"ES_INDEX_ARTICLE"`
 	IndexCategory string `mapstructure:"ES_INDEX_CATEGORY"`
+}
+
+type RedisConfig struct {
+	Host     string `mapstructure:"REDIS_HOST"`
+	Port     string `mapstructure:"REDIS_PORT"`
+	Username string `mapstructure:"REDIS_USERNAME"`
+	Password string `mapstructure:"REDIS_PASSWORD"`
+	DB       int    `mapstructure:"REDIS_DB"`
 }
 
 func Load() (conf Config) {

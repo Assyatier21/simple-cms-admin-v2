@@ -16,5 +16,11 @@
     "ES_INDEX_ARTICLE": "index_article",
     "ES_INDEX_CATEGORY": "index_category"
   },
+  "REDIS_CONFIG": {
+    "REDIS_ADDRESS": "http://127.0.0.1:6379",
+    "REDIS_USERNAME": "username",
+    "REDIS_PASSWORD": "",
+    "REDIS_DB": 0
+  },
   "JWT_SECRET_KEY": "JWT-Secret-Key"
 }

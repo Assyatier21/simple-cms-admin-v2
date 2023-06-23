@@ -25,6 +25,8 @@ func main() {
 
 	dbClient := driver.InitPostgres(cfg.PostgresConfig)
 	esClient := driver.InitElasticClient(cfg.ElasticConfig)
+	redisClient := driver.InitRedisClient(cfg.RedisConfig)
+	_ = redisClient
 
 	postgresRepository := postgres.NewRepository(dbClient)
 	elasticRepository := elasticsearch.NewElasticRepository(esClient, cfg.ElasticConfig)
