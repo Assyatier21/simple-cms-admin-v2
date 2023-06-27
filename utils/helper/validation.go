@@ -20,9 +20,9 @@ type CustomValidator struct {
 func (cv *CustomValidator) Validate(i interface{}) error {
 	return cv.validator.Struct(i)
 }
+
 func UseCustomValidatorHandler(c *echo.Echo) {
 	c.Validator = &CustomValidator{validator: validator.New()}
-
 	c.HTTPErrorHandler = func(err error, c echo.Context) {
 		var MessageValidation []string
 		if castedObject, ok := err.(validator.ValidationErrors); ok {
@@ -59,13 +59,6 @@ func UseCustomValidatorHandler(c *echo.Echo) {
 
 }
 
-func BindValidate(c echo.Context, req interface{}) error {
-	var err = c.Bind(req)
-	if err != nil {
-		return err
-	}
-	return nil
-}
 func IsValidSlug(s string) bool {
 	regex, _ := regexp.Compile(`^[a-z0-9-]+$`)
 	return regex.MatchString(s)
