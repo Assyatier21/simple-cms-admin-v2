@@ -7,7 +7,8 @@ const (
 	GET_CATEGORY_DETAILS = `SELECT id, title, slug, created_at, updated_at
                         FROM categories WHERE id = $1`
 
-	GET_CATEGORY_BY_IDS = `SELECT id, title, slug FROM categories WHERE id IN ($1)`
+	GET_CATEGORY_BY_IDS = `SELECT id, title, slug FROM categories WHERE id IN (
+  								SELECT unnest($1::integer[]));`
 
 	INSERT_CATEGORY = `INSERT INTO categories (title, slug, created_at, updated_at)
 							VALUES ($1, $2, $3, $4) RETURNING id`

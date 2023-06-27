@@ -1,7 +1,5 @@
 package entity
 
-import "encoding/json"
-
 type Article struct {
 	ID          string   `json:"id" form:"id"`
 	Title       string   `json:"title" form:"title"`
@@ -25,7 +23,7 @@ type ArticleResponse struct {
 	Title        string             `json:"title"`
 	Slug         string             `json:"slug"`
 	HTMLContent  string             `json:"html_content"`
-	Metadata     json.RawMessage    `json:"metadata"`
+	Metadata     string             `json:"metadata"`
 	CreatedAt    string             `json:"created_at"`
 	UpdatedAt    string             `json:"updated_at"`
 	CategoryList []CategoryResponse `json:"categories"`

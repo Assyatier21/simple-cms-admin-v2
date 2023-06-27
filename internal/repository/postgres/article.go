@@ -26,7 +26,7 @@ func (r *repository) GetArticles(ctx context.Context, req entity.GetArticlesRequ
 
 	for rows.Next() {
 		var article entity.ArticleResponse
-		var categoryJSON json.RawMessage
+		var categoryJSON string
 
 		err := rows.Scan(&article.ID, &article.Title, &article.Slug, &article.HTMLContent, &article.Metadata, &article.CreatedAt, &article.UpdatedAt, &categoryJSON)
 		if err != nil {
@@ -34,7 +34,7 @@ func (r *repository) GetArticles(ctx context.Context, req entity.GetArticlesRequ
 			return articles, nil
 		}
 
-		err = json.Unmarshal(categoryJSON, &article.CategoryList)
+		err = json.Unmarshal([]byte(categoryJSON), &article.CategoryList)
 		if err != nil {
 			log.Println("[Repository][Postgres][GetArticles] error failed to unmarshal categories, err: ", err)
 		}
@@ -46,45 +46,39 @@ func (r *repository) GetArticles(ctx context.Context, req entity.GetArticlesRequ
 
 func (r *repository) GetArticleDetails(ctx context.Context, req entity.GetArticleDetailsRequest) (entity.ArticleResponse, error) {
 	var (
-		article = entity.ArticleResponse{}
+		article      = entity.ArticleResponse{}
+		categoryJSON string
+		categories   []entity.CategoryResponse
 	)
-	rows, err := r.db.Query(queries.GET_ARTICLE_DETAILS, req.ID)
+
+	err := r.db.QueryRow(queries.GET_ARTICLE_DETAILS, req.ID).Scan(&article.ID, &article.Title, &article.Slug, &article.HTMLContent, &article.Metadata, &article.CreatedAt, &article.UpdatedAt, &categoryJSON)
 	if err != nil {
-		log.Println("[Repository][Postgres][GetArticleDetails] error failed to exec query, err: ", err)
+		log.Println("[Repository][Postgres][GetArticleDetails] error failed to scan result, err: ", err)
 		return article, err
 	}
-	defer rows.Close()
 
-	for rows.Next() {
-		var categories []entity.CategoryResponse
-		err := rows.Scan(
-			&article.ID, &article.Title, &article.Slug, &article.HTMLContent,
-			&article.Metadata, &article.CreatedAt, &article.UpdatedAt,
-			pq.Array(&categories),
-		)
-		if err != nil {
-			log.Println("[Repository][Postgres][GetArticleDetails] error failed to scan rows, err: ", err)
-			return article, err
-		}
-		article.CategoryList = categories
+	if err := json.Unmarshal([]byte(categoryJSON), &categories); err != nil {
+		log.Println("[Repository][Postgres][GetArticleDetails] error failed to unmarshal categories, err: ", err)
+		return article, err
 	}
 
+	article.CategoryList = categories
 	return article, err
 }
 
 func (r *repository) InsertArticle(ctx context.Context, article entity.InsertArticleRequest) (entity.ArticleResponse, error) {
-	_, err := r.db.Exec(queries.INSERT_ARTICLE, article.ID, article.Title, article.Slug, article.HTMLContent, article.CategoryIDs, article.Metadata, article.CreatedAt, article.UpdatedAt)
+	_, err := r.db.Exec(queries.INSERT_ARTICLE, article.ID, article.Title, article.Slug, article.HTMLContent, pq.Array(article.CategoryIDs), article.Metadata, article.CreatedAt, article.UpdatedAt)
 	if err != nil {
 		log.Println("[Repository][Postgres][InsertArticle] error failed to insert article, err: ", err)
 		return entity.ArticleResponse{}, err
 	}
-	articleResponse := r.buildArticleResponse("insert", article)
 
+	articleResponse := r.buildInsertedArticleResponse(article)
 	return articleResponse, nil
 }
 
 func (r *repository) UpdateArticle(ctx context.Context, article entity.UpdateArticleRequest) (entity.ArticleResponse, error) {
-	result, err := r.db.Exec(queries.UPDATE_ARTICLE, article.Title, article.Slug, article.HTMLContent, article.CategoryIDs, article.Metadata, article.CreatedAt, article.UpdatedAt, article.ID)
+	result, err := r.db.Exec(queries.UPDATE_ARTICLE, article.Title, article.Slug, article.HTMLContent, pq.Array(article.CategoryIDs), article.Metadata, article.CreatedAt, article.UpdatedAt, article.ID)
 	if err != nil {
 		log.Println("[Repository][Postgres][UpdateArticle] error failed to update article, err: ", err)
 		return entity.ArticleResponse{}, err
@@ -95,7 +89,7 @@ func (r *repository) UpdateArticle(ctx context.Context, article entity.UpdateArt
 		return entity.ArticleResponse{}, lib.ErrorNoRowsAffected
 	}
 
-	articleResponse := r.buildArticleResponse("update", article)
+	articleResponse := r.buildUpdatedArticleResponse(article)
 
 	return articleResponse, nil
 }

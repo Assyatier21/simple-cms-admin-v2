@@ -10,7 +10,7 @@ import (
 
 	entity "github.com/assyatier21/simple-cms-admin-v2/models/entity"
 	gomock "github.com/golang/mock/gomock"
-	v7 "github.com/olivere/elastic/v7"
+	elastic "github.com/olivere/elastic/v7"
 )
 
 // MockElasticHandler is a mock of ElasticHandler interface.
@@ -65,7 +65,7 @@ func (mr *MockElasticHandlerMockRecorder) DeleteCategory(ctx, req interface{}) *
 }
 
 // GetArticleDetails mocks base method.
-func (m *MockElasticHandler) GetArticleDetails(ctx context.Context, query v7.Query) (entity.ArticleResponse, error) {
+func (m *MockElasticHandler) GetArticleDetails(ctx context.Context, query elastic.Query) (entity.ArticleResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetArticleDetails", ctx, query)
 	ret0, _ := ret[0].(entity.ArticleResponse)
@@ -95,7 +95,7 @@ func (mr *MockElasticHandlerMockRecorder) GetArticles(ctx, req interface{}) *gom
 }
 
 // GetCategoryDetails mocks base method.
-func (m *MockElasticHandler) GetCategoryDetails(ctx context.Context, query v7.Query) (entity.Category, error) {
+func (m *MockElasticHandler) GetCategoryDetails(ctx context.Context, query elastic.Query) (entity.Category, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetCategoryDetails", ctx, query)
 	ret0, _ := ret[0].(entity.Category)
